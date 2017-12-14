@@ -1,0 +1,32 @@
+{
+    "name": "forci/login-bundle",
+    "type": "symfony-bundle",
+    "description": "A Symfony ~3.0 Bundle that eases logging users to your Symfony application.",
+    "keywords": ["login manager", "login bundle", "hwi oauth token login integration", "oauth login bundle", "wucdbm", "forci"],
+    "authors": [
+        {
+            "name": "Martin Kirilov",
+            "email": "wucdbm@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~7.1",
+        "symfony/symfony": "~3.0|~4.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.8",
+        "wucdbm/php-cs-fixers": "~0.1",
+        "hwi/oauth-bundle": "~0.5"
+    },
+    "suggest": {
+        "hwi/oauth-bundle": "~0.5"
+    },
+    "autoload": {
+        "psr-4": { "Forci\\Bundle\\LoginBundle\\": "src" }
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "license": "GPL-3.0"
+}
