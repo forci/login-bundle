@@ -1,6 +1,6 @@
 # Login Bundle
 
-A Symfony ~3.0 Bundle that eases logging users to your Symfony application.
+A Symfony ~3.0|~4.0 Bundle that eases logging users to your Symfony application.
 
 Configuration Sample
 
