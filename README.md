@@ -24,6 +24,36 @@ forci_login:
                 user_provider: app.auth.user_provider
 ```
 
+```php
+<?php 
+/** @var \Symfony\Component\DependencyInjection\ContainerInterface */
+$container;
+/** @var \Forci\Bundle\LoginBundle\Helper\LoginHelper $manager */
+$manager = $container->get('forci_login.helper.frontend'); // where frontend is your config key
+$manager->logInUser($user);
+$manager->logInUser($user, $response); // $response is required if using remember_me
+```
+
+```php
+<?php
+/** @var \Symfony\Component\DependencyInjection\ContainerInterface */
+$container;
+$manager = $container->get('forci_login.helper.silent');
+// $user is your User object
+// some_area_key is your firewall key
+// some_area_context is your security context config for your firewall
+// Sample config down below, just for example purposes
+$manager->loginSilent($user, 'some_area_key', 'some_area_context');
+```
+
+```yaml
+security:
+    firewalls:
+        some_area_key:
+            pattern: ^/some/path
+            context: some_area_context
+```
+
 # TODOs
 
 - Possibly extend UsernamePasswordToken and make it configurable, again with the option to always be considered authenticated?
