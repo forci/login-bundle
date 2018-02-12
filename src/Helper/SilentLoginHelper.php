@@ -39,11 +39,11 @@ class SilentLoginHelper {
     }
 
     /**
-     * @param AdvancedUserInterface $user
-     * @param $area - This is the firewall NAME
-     * @param $context - This is the firewall CONTEXT
+     * @param AdvancedUserInterface $user    Your User object
+     * @param string                $area    This is the firewall NAME
+     * @param string                $context This is the firewall CONTEXT
      */
-    public function loginSilent(AdvancedUserInterface $user, $area, $context) {
+    public function login(AdvancedUserInterface $user, $area, $context) {
         $request = $this->requestStack->getCurrentRequest();
 
         if (!$request) {
