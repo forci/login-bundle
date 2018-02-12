@@ -24,8 +24,8 @@ class InjectRememberMeServicesPass implements CompilerPassInterface {
      * {@inheritdoc}
      */
     public function process(ContainerBuilder $container) {
-        foreach ($container->getParameter('forci_login_manager.config')['managers'] as $name => $config) {
-            $managerDefinition = new ChildDefinition('forci_login.manager.abstract');
+        foreach ($container->getParameter('forci_login.config')['managers'] as $name => $config) {
+            $managerDefinition = new ChildDefinition('forci_login.helper.abstract');
             $managerDefinition->setClass($config['class']);
             $managerDefinition->replaceArgument(5, $config);
             $managerDefinition->setPublic(true);
@@ -45,7 +45,7 @@ class InjectRememberMeServicesPass implements CompilerPassInterface {
                 $managerDefinition->addMethodCall('setHwiOauthUserProvider', [new Reference($config['hwi_oauth']['user_provider'])]);
             }
 
-            $managerId = sprintf('forci_login.manager.%s', $name);
+            $managerId = sprintf('forci_login.helper.%s', $name);
             $container->setDefinition($managerId, $managerDefinition);
         }
     }

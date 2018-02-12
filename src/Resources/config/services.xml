@@ -4,13 +4,18 @@
 
     <services>
 
-        <service id="forci_login.manager.abstract" class="Forci\Bundle\LoginBundle\Manager\LoginManager" abstract="true" public="false">
+        <service id="forci_login.helper.abstract" class="Forci\Bundle\LoginBundle\Helper\LoginHelper" abstract="true" public="false">
             <argument type="service" id="security.token_storage"/>
             <argument type="service" id="security.user_checker"/>
             <argument type="service" id="security.authentication.session_strategy"/>
             <argument type="service" id="request_stack"/>
             <argument type="service" id="event_dispatcher"/>
             <argument>null</argument>
+        </service>
+
+        <service id="forci_login.helper.silent" class="Forci\Bundle\LoginBundle\Helper\SilentLoginHelper" public="true">
+            <argument type="service" id="request_stack"/>
+            <argument type="service" id="event_dispatcher"/>
         </service>
 
     </services>

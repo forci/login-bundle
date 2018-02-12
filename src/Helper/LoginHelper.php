@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Forci\Bundle\LoginBundle\Manager;
+namespace Forci\Bundle\LoginBundle\Helper;
 
 use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap;
@@ -33,7 +33,7 @@ use Symfony\Component\Security\Http\SecurityEvents;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 use Forci\Bundle\LoginBundle\HWIOAuth\OAuthToken;
 
-class LoginManager {
+class LoginHelper {
 
     /** @var TokenStorageInterface */
     private $tokenStorage;

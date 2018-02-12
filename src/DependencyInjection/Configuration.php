@@ -16,7 +16,7 @@ namespace Forci\Bundle\LoginBundle\DependencyInjection;
 use HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Forci\Bundle\LoginBundle\Manager\LoginManager;
+use Forci\Bundle\LoginBundle\Helper\LoginHelper;
 
 class Configuration implements ConfigurationInterface {
 
@@ -30,11 +30,11 @@ class Configuration implements ConfigurationInterface {
                     ->prototype('array')
                         ->children()
                             ->scalarNode('class')
-                                ->defaultValue(LoginManager::class)
+                                ->defaultValue(LoginHelper::class)
                                 ->validate()
                                     ->ifTrue(function ($class) {
-                                        return !is_a($class, LoginManager::class, true);
-                                    })->thenInvalid(sprintf('Configuration "class" must be a child of %s, "%%s" provided', LoginManager::class))
+                                        return !is_a($class, LoginHelper::class, true);
+                                    })->thenInvalid(sprintf('Configuration "class" must be a child of %s, "%%s" provided', LoginHelper::class))
                                 ->end()
                             ->end()
                             ->scalarNode('remember_me')->defaultTrue()->end()

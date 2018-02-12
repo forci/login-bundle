@@ -29,7 +29,7 @@ class ForciLoginExtension extends Extension {
             new FileLocator(__DIR__.'/../Resources/config')
         );
 
-        $container->setParameter('forci_login_manager.config', $config);
+        $container->setParameter('forci_login.config', $config);
 
         $loader->load('services.xml');
     }
