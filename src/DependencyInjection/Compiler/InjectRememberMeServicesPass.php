@@ -32,12 +32,10 @@ class InjectRememberMeServicesPass implements CompilerPassInterface {
 
             $firewallName = $config['firewall_name'];
 
-            if ($config['remember_me']) {
-                if ($container->hasDefinition('security.authentication.rememberme.services.persistent.'.$firewallName)) {
-                    $managerDefinition->addMethodCall('setRememberMeService', [new Reference('security.authentication.rememberme.services.persistent.'.$firewallName)]);
-                } elseif ($container->hasDefinition('security.authentication.rememberme.services.simplehash.'.$firewallName)) {
-                    $managerDefinition->addMethodCall('setRememberMeService', [new Reference('security.authentication.rememberme.services.simplehash.'.$firewallName)]);
-                }
+            if ($container->hasDefinition('security.authentication.rememberme.services.persistent.'.$firewallName)) {
+                $managerDefinition->addMethodCall('setRememberMeService', [new Reference('security.authentication.rememberme.services.persistent.'.$firewallName)]);
+            } elseif ($container->hasDefinition('security.authentication.rememberme.services.simplehash.'.$firewallName)) {
+                $managerDefinition->addMethodCall('setRememberMeService', [new Reference('security.authentication.rememberme.services.simplehash.'.$firewallName)]);
             }
 
             if ($config['hwi_oauth']['enabled']) {

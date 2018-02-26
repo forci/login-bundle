@@ -8,7 +8,6 @@ Configuration Sample
 forci_login:
     managers:
         frontend:
-            remember_me: true # If present, will always call remember me services and set a cookie
             firewall_name: frontend_area # Your firewall name
             hwi_oauth: # HWIOAuthBundle integration - for use directly with OAuth Access Tokens
                 enabled: true
@@ -31,7 +30,9 @@ $container;
 /** @var \Forci\Bundle\LoginBundle\Helper\LoginHelper $manager */
 $manager = $container->get('forci_login.helper.frontend'); // where frontend is your config key
 $manager->logInUser($user);
-$manager->logInUser($user, $response); // $response is required if using remember_me
+$manager->rememberUser($user, $response);
+$manager->logInHWIOAuthAccessToken($accessToken, $state, $resourceOwner);
+$manager->rememberHWIOAuthAccessToken($accessToken, $state, $resourceOwner, $response);
 ```
 
 ```php
@@ -61,25 +62,25 @@ security:
 - Have a good look at those services from Symfony Security and consider implementing calls to those as otherwise redirect target path will not be correctly cleared upon success?
 
 <service id="security.authentication.custom_success_handler" class="Symfony\Component\Security\Http\Authentication\CustomAuthenticationSuccessHandler" abstract="true">
-            <argument /> <!-- The custom success handler service id -->
-            <argument type="collection" /> <!-- Options -->
-            <argument /> <!-- Provider-shared Key -->
-        </service>
+    <argument /> <!-- The custom success handler service id -->
+    <argument type="collection" /> <!-- Options -->
+    <argument /> <!-- Provider-shared Key -->
+</service>
 
-        <service id="security.authentication.success_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler" abstract="true">
-            <argument type="service" id="security.http_utils" />
-            <argument type="collection" /> <!-- Options -->
-        </service>
+<service id="security.authentication.success_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler" abstract="true">
+    <argument type="service" id="security.http_utils" />
+    <argument type="collection" /> <!-- Options -->
+</service>
 
-        <service id="security.authentication.custom_failure_handler" class="Symfony\Component\Security\Http\Authentication\CustomAuthenticationFailureHandler" abstract="true">
-            <argument /> <!-- The custom failure handler service id -->
-            <argument type="collection" /> <!-- Options -->
-        </service>
+<service id="security.authentication.custom_failure_handler" class="Symfony\Component\Security\Http\Authentication\CustomAuthenticationFailureHandler" abstract="true">
+    <argument /> <!-- The custom failure handler service id -->
+    <argument type="collection" /> <!-- Options -->
+</service>
 
-        <service id="security.authentication.failure_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationFailureHandler" abstract="true">
-            <tag name="monolog.logger" channel="security" />
-            <argument type="service" id="http_kernel" />
-            <argument type="service" id="security.http_utils" />
-            <argument type="collection" /> <!-- Options -->
-            <argument type="service" id="logger" on-invalid="null" />
-        </service>
+<service id="security.authentication.failure_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationFailureHandler" abstract="true">
+    <tag name="monolog.logger" channel="security" />
+    <argument type="service" id="http_kernel" />
+    <argument type="service" id="security.http_utils" />
+    <argument type="collection" /> <!-- Options -->
+    <argument type="service" id="logger" on-invalid="null" />
+</service>

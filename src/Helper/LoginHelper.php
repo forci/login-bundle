@@ -13,6 +13,7 @@
 
 namespace Forci\Bundle\LoginBundle\Helper;
 
+use Forci\Bundle\LoginBundle\HWIOAuth\OAuthToken;
 use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
 use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -31,7 +32,6 @@ use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
 use Symfony\Component\Security\Http\SecurityEvents;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
-use Forci\Bundle\LoginBundle\HWIOAuth\OAuthToken;
 
 class LoginHelper {
 
@@ -79,10 +79,27 @@ class LoginHelper {
         return $this->config['firewall_name'];
     }
 
-    final public function logInUser(UserInterface $user, Response $response = null): void {
-        $token = $this->createUsernamePasswordToken($user);
+    final public function logInUser(UserInterface $user): void {
+        $this->logInToken($this->createUsernamePasswordToken($user));
+    }
 
-        $this->logInToken($token, $user, $response);
+    final public function rememberUser(UserInterface $user, Response $response): void {
+        $this->logInToken($this->createUsernamePasswordToken($user), [
+            'remember_me' => $response
+        ]);
+    }
+
+    /**
+     * @param string|array $accessToken
+     * @param string       $state
+     * @param string       $resourceOwner
+     *
+     * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
+     * @throws UsernameNotFoundException When user could not be found
+     * @throws AuthenticationException   When state is wrong
+     */
+    final public function logInHWIOAuthAccessToken($accessToken, string $state, string $resourceOwner): void {
+        $this->logInToken($this->getHWIOAuthUser($accessToken, $state, $resourceOwner));
     }
 
     /**
@@ -92,11 +109,16 @@ class LoginHelper {
      * @param Response     $response
      *
      * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
-     * @throws \InvalidArgumentException When remember me is turned on, but no Response is provided
      * @throws UsernameNotFoundException When user could not be found
      * @throws AuthenticationException   When state is wrong
      */
-    final public function logInHWIOAuthAccessToken($accessToken, string $state, string $resourceOwner, Response $response = null): void {
+    final public function rememberHWIOAuthAccessToken($accessToken, string $state, string $resourceOwner, Response $response): void {
+        $this->logInToken($this->getHWIOAuthUser($accessToken, $state, $resourceOwner), [
+            'remember_me' => $response
+        ]);
+    }
+
+    private function getHWIOAuthUser($accessToken, string $state, string $resourceOwner): TokenInterface {
         if (!$this->hwiOAuthResourceOwnerMap) {
             throw new \InvalidArgumentException(sprintf('HWI OAuth Login called, but is not enabled for "%s"', $this->config['firewall_name']));
         }
@@ -115,10 +137,12 @@ class LoginHelper {
             $token = $this->createHWIOAuthToken($accessToken, $user, $resourceOwner->getName());
         }
 
-        $this->logInToken($token, $user, $response);
+        return $token;
     }
 
-    protected function logInToken(TokenInterface $token, UserInterface $user, Response $response = null) {
+    protected function logInToken(TokenInterface $token, array $options = []): void {
+        $user = $token->getUser();
+
         try {
             $this->userChecker->checkPreAuth($user);
             $this->userChecker->checkPostAuth($user);
@@ -133,12 +157,12 @@ class LoginHelper {
 
         $this->callSessionAuthenticationStrategy($token, $request);
 
-        if ($this->config['remember_me']) {
-            if (!$response) {
-                throw new \InvalidArgumentException('Config value "remember_me" is true, but no Response provider for method call.');
-            }
+        if (isset($options['remember_me'])) {
+            $response = $options['remember_me'];
 
-            $this->callRememberMeServices($token, $request, $response);
+            if ($response instanceof Response) {
+                $this->callRememberMeServices($token, $request, $response);
+            }
         }
 
         $this->dispatchInteractiveLogin($token, $request);

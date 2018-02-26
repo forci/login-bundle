@@ -37,7 +37,6 @@ class Configuration implements ConfigurationInterface {
                                     })->thenInvalid(sprintf('Configuration "class" must be a child of %s, "%%s" provided', LoginHelper::class))
                                 ->end()
                             ->end()
-                            ->scalarNode('remember_me')->defaultTrue()->end()
                             ->scalarNode('public')->defaultFalse()->end()
                             ->scalarNode('firewall_name')->isRequired()->end()
                             ->arrayNode('hwi_oauth')
