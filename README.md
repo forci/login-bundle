@@ -84,3 +84,5 @@ security:
     <argument type="collection" /> <!-- Options -->
     <argument type="service" id="logger" on-invalid="null" />
 </service>
+
+- Have a look at `PreAuthenticatedToken` ?g
