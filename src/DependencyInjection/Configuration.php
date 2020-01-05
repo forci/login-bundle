@@ -21,8 +21,8 @@ use Forci\Bundle\LoginBundle\Helper\LoginHelper;
 class Configuration implements ConfigurationInterface {
 
     public function getConfigTreeBuilder() {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('forci_login');
+        $treeBuilder = new TreeBuilder('forci_login');
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()
