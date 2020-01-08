@@ -16,7 +16,7 @@ namespace Forci\Bundle\LoginBundle\Helper;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\User\AdvancedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
 class SilentLoginHelper {
@@ -39,11 +39,11 @@ class SilentLoginHelper {
     }
 
     /**
-     * @param AdvancedUserInterface $user    Your User object
+     * @param UserInterface $user    Your User object
      * @param string                $area    This is the firewall NAME
      * @param string                $context This is the firewall CONTEXT
      */
-    public function login(AdvancedUserInterface $user, $area, $context) {
+    public function login(UserInterface $user, $area, $context) {
         $request = $this->requestStack->getCurrentRequest();
 
         if (!$request) {
