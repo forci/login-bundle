@@ -15,9 +15,11 @@ namespace Forci\Bundle\LoginBundle\Helper;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Symfony\Component\Security\Http\SecurityEvents;
 
 class SilentLoginHelper {
 
@@ -60,6 +62,17 @@ class SilentLoginHelper {
         // $session->set('_security.'.$area.'.target_path', 'https://website.com/app_dev.php/some/address');
 
         $event = new InteractiveLoginEvent($request, $token);
-        $this->eventDispatcher->dispatch('security.interactive_login', $event);
+
+        if (Kernel::VERSION_ID >= 50000) {
+            $this->eventDispatcher->dispatch(
+                $event,
+                SecurityEvents::INTERACTIVE_LOGIN
+            );
+        } else {
+            $this->eventDispatcher->dispatch(
+                SecurityEvents::INTERACTIVE_LOGIN,
+                $event
+            );
+        }
     }
 }
