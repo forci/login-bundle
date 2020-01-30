@@ -83,11 +83,11 @@ class LoginHelper {
         return $this->config['firewall_name'];
     }
 
-    final public function logInUser(UserInterface $user, bool $preAuthenticated): void {
+    final public function logInUser(UserInterface $user, bool $preAuthenticated = false): void {
         $this->logInToken($this->createToken($user, $preAuthenticated));
     }
 
-    final public function rememberUser(UserInterface $user, Response $response, bool $preAuthenticated): void {
+    final public function rememberUser(UserInterface $user, Response $response, bool $preAuthenticated = false): void {
         $this->logInToken($this->createToken($user, $preAuthenticated), [
             'remember_me' => $response
         ]);
