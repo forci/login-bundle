@@ -63,10 +63,11 @@ class LoginHelper {
     /** @var array */
     private $config;
 
-    public function __construct(TokenStorageInterface $tokenStorage, UserCheckerInterface $userChecker,
-                                SessionAuthenticationStrategyInterface $sessionStrategy,
-                                RequestStack $requestStack, EventDispatcherInterface $eventDispatcher,
-                                array $config
+    public function __construct(
+        TokenStorageInterface $tokenStorage, UserCheckerInterface $userChecker,
+        SessionAuthenticationStrategyInterface $sessionStrategy,
+        RequestStack $requestStack, EventDispatcherInterface $eventDispatcher,
+        array $config
     ) {
         $this->tokenStorage = $tokenStorage;
         $this->userChecker = $userChecker;
@@ -92,8 +93,6 @@ class LoginHelper {
 
     /**
      * @param string|array $accessToken
-     * @param string       $state
-     * @param string       $resourceOwner
      *
      * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
      * @throws UsernameNotFoundException When user could not be found
@@ -105,9 +104,6 @@ class LoginHelper {
 
     /**
      * @param string|array $accessToken
-     * @param string       $state
-     * @param string       $resourceOwner
-     * @param Response     $response
      *
      * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
      * @throws UsernameNotFoundException When user could not be found
@@ -212,9 +208,7 @@ class LoginHelper {
     }
 
     /**
-     * @param string|array  $accessToken
-     * @param UserInterface $user
-     * @param string        $resourceOwnerName
+     * @param string|array $accessToken
      *
      * @return \HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken
      */

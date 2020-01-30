@@ -13,9 +13,9 @@
 
 namespace Forci\Bundle\LoginBundle;
 
+use Forci\Bundle\LoginBundle\DependencyInjection\Compiler\InjectRememberMeServicesPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Forci\Bundle\LoginBundle\DependencyInjection\Compiler\InjectRememberMeServicesPass;
 
 class ForciLoginBundle extends Bundle {
 

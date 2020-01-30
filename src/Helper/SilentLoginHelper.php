@@ -31,19 +31,18 @@ class SilentLoginHelper {
 
     /**
      * SilentLoginManager constructor.
-     *
-     * @param RequestStack             $requestStack
-     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(RequestStack $requestStack, EventDispatcherInterface $eventDispatcher) {
+    public function __construct(
+        RequestStack $requestStack, EventDispatcherInterface $eventDispatcher
+    ) {
         $this->requestStack = $requestStack;
         $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
      * @param UserInterface $user    Your User object
-     * @param string                $area    This is the firewall NAME
-     * @param string                $context This is the firewall CONTEXT
+     * @param string        $area    This is the firewall NAME
+     * @param string        $context This is the firewall CONTEXT
      */
     public function login(UserInterface $user, $area, $context) {
         $request = $this->requestStack->getCurrentRequest();
