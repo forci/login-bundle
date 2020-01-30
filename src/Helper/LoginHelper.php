@@ -20,6 +20,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -193,10 +194,17 @@ class LoginHelper {
             return;
         }
 
-        $this->eventDispatcher->dispatch(
-            SecurityEvents::INTERACTIVE_LOGIN,
-            new InteractiveLoginEvent($request, $token)
-        );
+        if (Kernel::VERSION_ID >= 50000) {
+            $this->eventDispatcher->dispatch(
+                new InteractiveLoginEvent($request, $token),
+                SecurityEvents::INTERACTIVE_LOGIN
+            );
+        } else {
+            $this->eventDispatcher->dispatch(
+                SecurityEvents::INTERACTIVE_LOGIN,
+                new InteractiveLoginEvent($request, $token)
+            );
+        }
     }
 
     protected function createUsernamePasswordToken(UserInterface $user): UsernamePasswordToken {
