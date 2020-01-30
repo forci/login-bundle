@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
+use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -81,12 +83,12 @@ class LoginHelper {
         return $this->config['firewall_name'];
     }
 
-    final public function logInUser(UserInterface $user): void {
-        $this->logInToken($this->createUsernamePasswordToken($user));
+    final public function logInUser(UserInterface $user, bool $preAuthenticated): void {
+        $this->logInToken($this->createToken($user, $preAuthenticated));
     }
 
-    final public function rememberUser(UserInterface $user, Response $response): void {
-        $this->logInToken($this->createUsernamePasswordToken($user), [
+    final public function rememberUser(UserInterface $user, Response $response, bool $preAuthenticated): void {
+        $this->logInToken($this->createToken($user, $preAuthenticated), [
             'remember_me' => $response
         ]);
     }
@@ -205,6 +207,21 @@ class LoginHelper {
 
     protected function createUsernamePasswordToken(UserInterface $user): UsernamePasswordToken {
         return new UsernamePasswordToken($user, null, $this->getFirewallName(), $user->getRoles());
+    }
+
+    protected function createPreAuthenticatedToken(UserInterface $user): PreAuthenticatedToken {
+        $token = new PreAuthenticatedToken($user, $user->getPassword(), $this->getFirewallName(), $user->getRoles());
+        $token->setAuthenticated(true);
+
+        return $token;
+    }
+
+    protected function createToken(UserInterface $user, bool $preAuthenticated): AbstractToken {
+        if ($preAuthenticated) {
+            return $this->createPreAuthenticatedToken($user);
+        }
+
+        return $this->createUsernamePasswordToken($user);
     }
 
     /**
