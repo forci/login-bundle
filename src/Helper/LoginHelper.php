@@ -13,26 +13,20 @@
 
 namespace Forci\Bundle\LoginBundle\Helper;
 
-use Forci\Bundle\LoginBundle\HWIOAuth\OAuthToken;
-use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
-use HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
-use Symfony\Component\Security\Http\RememberMe\RememberMeServicesInterface;
+use Symfony\Component\Security\Http\RememberMe\RememberMeHandlerInterface;
 use Symfony\Component\Security\Http\SecurityEvents;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 
@@ -53,14 +47,8 @@ class LoginHelper {
     /** @var EventDispatcherInterface */
     private $eventDispatcher;
 
-    /** @var RememberMeServicesInterface|null */
+    /** @var RememberMeHandlerInterface|null */
     private $rememberMeService;
-
-    /** @var ResourceOwnerMap|null */
-    private $hwiOAuthResourceOwnerMap;
-
-    /** @var OAuthAwareUserProviderInterface|null */
-    private $hwiOauthUserProvider;
 
     /** @var array */
     private $config;
@@ -93,61 +81,17 @@ class LoginHelper {
         ]);
     }
 
-    /**
-     * @param string|array $accessToken
-     *
-     * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
-     * @throws UsernameNotFoundException When user could not be found
-     * @throws AuthenticationException   When state is wrong
-     */
-    final public function logInHWIOAuthAccessToken($accessToken, string $state, string $resourceOwner): void {
-        $this->logInToken($this->getHWIOAuthUser($accessToken, $state, $resourceOwner));
-    }
-
-    /**
-     * @param string|array $accessToken
-     *
-     * @throws \InvalidArgumentException When login is not enabled for hwi oauth for this provider
-     * @throws UsernameNotFoundException When user could not be found
-     * @throws AuthenticationException   When state is wrong
-     */
-    final public function rememberHWIOAuthAccessToken($accessToken, string $state, string $resourceOwner, Response $response): void {
-        $this->logInToken($this->getHWIOAuthUser($accessToken, $state, $resourceOwner), [
-            'remember_me' => $response
-        ]);
-    }
-
-    private function getHWIOAuthUser($accessToken, string $state, string $resourceOwner): TokenInterface {
-        if (!$this->hwiOAuthResourceOwnerMap) {
-            throw new \InvalidArgumentException(sprintf('HWI OAuth Login called, but is not enabled for "%s"', $this->config['firewall_name']));
-        }
-
-        $resourceOwner = $this->hwiOAuthResourceOwnerMap->getResourceOwnerByName($resourceOwner);
-
-        $userResponse = $resourceOwner->getUserInformation($accessToken);
-
-        $user = $this->hwiOauthUserProvider->loadUserByOAuthUserResponse($userResponse);
-
-        $resourceOwner->isCsrfTokenValid($state);
-
-        if ($this->config['hwi_oauth']['use_username_password_token']) {
-            $token = $this->createUsernamePasswordToken($user);
-        } else {
-            $token = $this->createHWIOAuthToken($accessToken, $user, $resourceOwner->getName());
-        }
-
-        return $token;
-    }
-
     protected function logInToken(TokenInterface $token, array $options = []): void {
         $user = $token->getUser();
 
-        try {
-            $this->userChecker->checkPreAuth($user);
-            $this->userChecker->checkPostAuth($user);
-        } catch (AccountStatusException $e) {
-            // Don't authenticate locked, disabled or expired users
-            return;
+        if ($user) {
+            try {
+                $this->userChecker->checkPreAuth($user);
+                $this->userChecker->checkPostAuth($user);
+            } catch (AccountStatusException $e) {
+                // Don't authenticate locked, disabled or expired users
+                return;
+            }
         }
 
         $this->tokenStorage->setToken($token);
@@ -160,7 +104,7 @@ class LoginHelper {
             $response = $options['remember_me'];
 
             if ($response instanceof Response) {
-                $this->callRememberMeServices($token, $request, $response);
+                $this->callRememberMeServices($token);
             }
         }
 
@@ -175,16 +119,14 @@ class LoginHelper {
         $this->sessionStrategy->onAuthentication($request, $token);
     }
 
-    protected function callRememberMeServices(TokenInterface $token, Request $request = null, Response $response) {
-        if (!$request) {
-            return;
-        }
-
+    protected function callRememberMeServices(TokenInterface $token) {
         if (!$this->rememberMeService) {
             return;
         }
 
-        $this->rememberMeService->loginSuccess($request, $response, $token);
+        if ($token->getUser()) {
+            $this->rememberMeService->createRememberMeCookie($token->getUser());
+        }
     }
 
     protected function dispatchInteractiveLogin(TokenInterface $token, Request $request = null) {
@@ -192,26 +134,18 @@ class LoginHelper {
             return;
         }
 
-        if (Kernel::VERSION_ID >= 50000) {
-            $this->eventDispatcher->dispatch(
-                new InteractiveLoginEvent($request, $token),
-                SecurityEvents::INTERACTIVE_LOGIN
-            );
-        } else {
-            $this->eventDispatcher->dispatch(
-                SecurityEvents::INTERACTIVE_LOGIN,
-                new InteractiveLoginEvent($request, $token)
-            );
-        }
+        $this->eventDispatcher->dispatch(
+            new InteractiveLoginEvent($request, $token),
+            SecurityEvents::INTERACTIVE_LOGIN
+        );
     }
 
     protected function createUsernamePasswordToken(UserInterface $user): UsernamePasswordToken {
-        return new UsernamePasswordToken($user, null, $this->getFirewallName(), $user->getRoles());
+        return new UsernamePasswordToken($user, $this->getFirewallName(), $user->getRoles());
     }
 
     protected function createPreAuthenticatedToken(UserInterface $user): PreAuthenticatedToken {
-        $token = new PreAuthenticatedToken($user, $user->getPassword(), $this->getFirewallName(), $user->getRoles());
-        $token->setAuthenticated(true);
+        $token = new PreAuthenticatedToken($user, $this->getFirewallName(), $user->getRoles());
 
         return $token;
     }
@@ -224,47 +158,12 @@ class LoginHelper {
         return $this->createUsernamePasswordToken($user);
     }
 
-    /**
-     * @param string|array $accessToken
-     *
-     * @return \HWI\Bundle\OAuthBundle\Security\Core\Authentication\Token\OAuthToken
-     */
-    protected function createHWIOAuthToken($accessToken, UserInterface $user, string $resourceOwnerName) {
-        $class = $this->config['hwi_oauth']['token_class'];
-        $token = new $class($accessToken, $user->getRoles());
-
-        if ($token instanceof OAuthToken) {
-            $token->setAlwaysAuthenticated($this->config['hwi_oauth']['always_authenticated']);
-            $token->setProviderKey($this->getFirewallName());
-        }
-
-        $token->setResourceOwnerName($resourceOwnerName);
-        $token->setUser($user);
-
-        return $token;
-    }
-
-    public function getRememberMeService(): ?RememberMeServicesInterface {
+    public function getRememberMeService(): ?RememberMeHandlerInterface {
         return $this->rememberMeService;
     }
 
-    public function setRememberMeService(RememberMeServicesInterface $rememberMeService = null) {
+    public function setRememberMeService(RememberMeHandlerInterface $rememberMeService = null) {
         $this->rememberMeService = $rememberMeService;
     }
 
-    public function getHwiOAuthResourceOwnerMap(): ?ResourceOwnerMap {
-        return $this->hwiOAuthResourceOwnerMap;
-    }
-
-    public function setHwiOAuthResourceOwnerMap(ResourceOwnerMap $hwiOAuthResourceOwnerMap = null) {
-        $this->hwiOAuthResourceOwnerMap = $hwiOAuthResourceOwnerMap;
-    }
-
-    public function getHwiOauthUserProvider(): ?OAuthAwareUserProviderInterface {
-        return $this->hwiOauthUserProvider;
-    }
-
-    public function setHwiOauthUserProvider(OAuthAwareUserProviderInterface $hwiOauthUserProvider = null) {
-        $this->hwiOauthUserProvider = $hwiOauthUserProvider;
-    }
 }

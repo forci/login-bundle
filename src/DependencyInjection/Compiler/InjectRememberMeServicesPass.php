@@ -38,11 +38,6 @@ class InjectRememberMeServicesPass implements CompilerPassInterface {
                 $managerDefinition->addMethodCall('setRememberMeService', [new Reference('security.authentication.rememberme.services.simplehash.'.$firewallName)]);
             }
 
-            if ($config['hwi_oauth']['enabled']) {
-                $managerDefinition->addMethodCall('setHwiOAuthResourceOwnerMap', [new Reference(sprintf('hwi_oauth.resource_ownermap.%s', $firewallName))]);
-                $managerDefinition->addMethodCall('setHwiOauthUserProvider', [new Reference($config['hwi_oauth']['user_provider'])]);
-            }
-
             $managerId = sprintf('forci_login.helper.%s', $name);
             $container->setDefinition($managerId, $managerDefinition);
         }
