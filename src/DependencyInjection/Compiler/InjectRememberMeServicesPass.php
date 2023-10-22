@@ -23,7 +23,8 @@ class InjectRememberMeServicesPass implements CompilerPassInterface {
     /**
      * {@inheritdoc}
      */
-    public function process(ContainerBuilder $container) {
+    public function process(ContainerBuilder $container): void
+    {
         foreach ($container->getParameter('forci_login.config')['managers'] as $name => $config) {
             $managerDefinition = new ChildDefinition('forci_login.helper.abstract');
             $managerDefinition->setClass($config['class']);

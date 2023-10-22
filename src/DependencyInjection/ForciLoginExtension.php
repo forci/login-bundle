@@ -20,7 +20,8 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 class ForciLoginExtension extends Extension {
 
-    public function load(array $configs, ContainerBuilder $container) {
+    public function load(array $configs, ContainerBuilder $container): void
+    {
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -37,15 +38,18 @@ class ForciLoginExtension extends Extension {
     /**
      * {@inheritdoc}
      */
-    public function getConfiguration(array $config, ContainerBuilder $container) {
+    public function getConfiguration(array $config, ContainerBuilder $container): Configuration|\Symfony\Component\Config\Definition\ConfigurationInterface|null
+    {
         return new Configuration();
     }
 
-    public function getXsdValidationBasePath() {
+    public function getXsdValidationBasePath(): string
+    {
         return __DIR__.'/../Resources/config/';
     }
 
-    public function getNamespace() {
+    public function getNamespace(): string
+    {
         return 'http://www.example.com/symfony/schema/';
     }
 }
